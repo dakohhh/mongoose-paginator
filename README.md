@@ -1,1 +1,208 @@
-# mongoose-paginator
+# @dakohhh/mongoose-paginator
+
+[![npm version](https://img.shields.io/npm/v/@dakohhh/mongoose-paginator.svg)](https://www.npmjs.com/package/@dakohhh/mongoose-paginator)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+
+A lightweight, flexible, and TypeScript-friendly pagination utility for Mongoose models. This package provides a class-based approach to handling database pagination with support for filtering, sorting, population, projection, and metadata customization — all without relying on heavy plugins.
+
+## Features
+
+- 🚀 **Lightweight & Performant**: Minimal overhead with optimized query execution
+- 🔧 **Fully Configurable**: Customize filters, sorting, projections, and more
+- 📊 **Rich Metadata**: Comprehensive pagination metadata including total count, page info, and navigation
+- 🧩 **Fluent API**: Chainable methods for a clean and intuitive interface
+- 📝 **TypeScript Support**: Full type safety with generic typing
+- 🔄 **Document/JSON Flexibility**: Support for both Mongoose documents and lean objects
+- 🔍 **Advanced Querying**: Compatible with all Mongoose query operators
+- 🧪 **Zero Dependencies**: No external dependencies beyond Mongoose
+
+## Installation
+
+```bash
+npm install @dakohhh/mongoose-paginator
+```
+
+Or with yarn:
+
+```bash
+yarn add @dakohhh/mongoose-paginator
+```
+
+## Usage
+
+### Basic Example
+
+```typescript
+import { Paginator } from '@dakohhh/mongoose-paginator';
+import { model, Schema, Document } from 'mongoose';
+
+// Define your Mongoose model
+interface IUser extends Document {
+  name: string;
+  email: string;
+  age: number;
+  createdAt: Date;
+}
+
+const UserModel = model<IUser>('User', userSchema);
+
+// Create a paginator instance
+const paginator = new Paginator<IUser>(UserModel);
+
+// Execute pagination
+const result = await paginator.paginate();
+
+console.log(result);
+// Output: { data: [...], meta: { total, lastPage, currentPage, perPage, prev, next } }
+
+// You can also destructure the results for cleaner code
+const { data: users, meta: paginationInfo } = await paginator.paginate();
+console.log(users); // Array of user documents
+console.log(paginationInfo); // Pagination metadata
+```
+
+### Advanced Usage
+
+```typescript
+const paginator = new Paginator<IUser>(UserModel, 2, 15, {
+  filter: { age: { $gte: 18 } },
+  sort: { createdAt: -1 },
+  projection: ['name', 'email', '-_id'],
+  populate: [{ path: 'posts', select: 'title' }],
+  lean: true
+});
+
+// Or use the fluent API
+const result = await paginator
+  .setPage(2)
+  .setLimit(15)
+  .setArgs({
+    filter: { age: { $gte: 18 } },
+    sort: { createdAt: -1 },
+    projection: ['name', 'email', '-_id'],
+    populate: [{ path: 'posts', select: 'title' }],
+    lean: true
+  })
+  .paginate();
+```
+
+### Result Customization
+
+One of the key advantages of this paginator is the ability to easily customize how you access your results through destructuring:
+
+```typescript
+// Standard result object
+const result = await paginator.paginate();
+
+// Customize variable names through destructuring
+const { data: users, meta: paginationInfo } = await paginator.paginate();
+
+// Access your data with your preferred variable names
+console.log(users); // Your paginated documents with your custom name
+console.log(paginationInfo.currentPage); // Access pagination metadata with your custom name
+
+// Use in a response object
+return {
+  success: true,
+  users, // Your renamed data array
+  pagination: paginationInfo // Your renamed metadata
+};
+```
+
+## API Reference
+
+### `Paginator<T>`
+
+The main class for pagination operations.
+
+#### Constructor
+
+```typescript
+constructor(
+  model: Model<T>,
+  page: number = 1,
+  limit: number = 10,
+  args: IPaginateArgs<T> = { filter: {}, sort: { createdAt: -1 }, lean: true }
+)
+```
+
+#### Methods
+
+- **`paginate()`**: Executes the pagination query and returns results with metadata
+- **`setPage(page: number)`**: Sets the current page number
+- **`setLimit(limit: number)`**: Sets the number of items per page
+- **`setArgs(args: IPaginateArgs<T>)`**: Sets the query arguments
+
+### Interfaces
+
+#### `IPaginateArgs<T>`
+
+```typescript
+interface IPaginateArgs<T> {
+  filter?: FilterQuery<T>;
+  sort?: Record<string, SortOrder>;
+  projection?: string | string[] | Record<string, number | boolean | string | object>;
+  populate?: PopulateOptions | PopulateOptions[];
+  lean?: boolean;
+}
+```
+
+#### `IPaginationResult<T>`
+
+```typescript
+interface IPaginationResult<T> {
+  data: T[];
+  meta: IPaginationMeta;
+}
+```
+
+#### `IPaginationMeta`
+
+```typescript
+interface IPaginationMeta {
+  total: number;
+  lastPage: number;
+  currentPage: number;
+  perPage: number;
+  prev: number | null;
+  next: number | null;
+}
+```
+
+## Advantages Over Other Solutions
+
+- **Class-Based Design**: Unlike function-based pagination utilities, our class-based approach allows for a more intuitive and chainable API.
+
+- **TypeScript First**: Built with TypeScript from the ground up, providing complete type safety without compromising on features.
+
+- **Lightweight**: No external dependencies beyond Mongoose itself, making it a lightweight addition to your project.
+
+- **Flexible Query Options**: Full support for all Mongoose query capabilities including complex filtering, sorting, and population.
+
+- **Performance Optimized**: Uses `Promise.all` to run document fetching and count queries in parallel for better performance.
+
+- **Lean Option**: Built-in support for lean queries, significantly improving performance when working with large datasets.
+
+- **Comprehensive Metadata**: Provides rich pagination metadata including total count, current page, last page, and navigation helpers.
+
+- **Fluent API**: Chainable methods make the API intuitive and easy to use, improving code readability.
+
+## Use Cases
+
+- **RESTful APIs**: Implement standardized pagination for your API endpoints
+- **Admin Dashboards**: Paginate large datasets in admin interfaces
+- **Data Tables**: Power data tables with server-side pagination
+- **Search Results**: Paginate search results efficiently
+- **Feed Systems**: Implement "load more" or paginated content feeds
+
+## License
+
+ISC
+
+## Author
+
+Wisdom Dakoh
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
