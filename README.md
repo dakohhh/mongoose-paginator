@@ -64,7 +64,9 @@ console.log(paginationInfo); // Pagination metadata
 ### Advanced Usage
 
 ```typescript
-const paginator = new Paginator<IUser>(UserModel, 2, 15, {
+const page = 1; // Page number
+const limit = 10; // Number of items per page
+const paginator = new Paginator<IUser>(UserModel, page, limit, {
   filter: { age: { $gte: 18 } },
   sort: { createdAt: -1 },
   projection: ['name', 'email', '-_id'],
@@ -74,8 +76,8 @@ const paginator = new Paginator<IUser>(UserModel, 2, 15, {
 
 // Or use the fluent API
 const result = await paginator
-  .setPage(2)
-  .setLimit(15)
+  .setPage(page)
+  .setLimit(limit)
   .setArgs({
     filter: { age: { $gte: 18 } },
     sort: { createdAt: -1 },
