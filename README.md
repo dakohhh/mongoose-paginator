@@ -197,6 +197,30 @@ interface IPaginationMeta {
 - **Search Results**: Paginate search results efficiently
 - **Feed Systems**: Implement "load more" or paginated content feeds
 
+
+## 🔄 Comparison: `@dakohhh/mongoose-paginator` vs `mongoose-paginate-v2`
+
+| Feature                  | @dakohhh/mongoose-paginator                                                                 | mongoose-paginate-v2                                |
+|--------------------------|---------------------------------------------------------------------------------------------|-----------------------------------------------------|
+| 🏗️ Architecture          | Class-based with fluent, chainable methods                                                  | Plugin-based (requires schema.plugin)               |
+| ✅ TypeScript Support     | ✅ First-class TypeScript support with full generic typing                                  | ⚠️ Partial — requires community types                |
+| 🧩 Integration            | No schema modification needed — use directly with any Mongoose model                       | Requires modification via schema.plugin             |
+| 🚀 Performance            | Parallel execution of data & count queries using `Promise.all()`                           | Serial execution (slightly slower on large queries) |
+| 🧠 Query Options          | Advanced support: filtering, sorting, projection, population, lean queries                 | Basic support for filter, select, populate, lean    |
+| 📊 Pagination Metadata    | Rich meta: total, perPage, currentPage, prev, next, lastPage                               | Provides basic pagination metadata                  |
+| 🔄 Chainable API          | ✅ Fluent API: `.setPage().setLimit().setArgs()`                                            | ❌ Not supported                                     |
+| 🧼 Clean API              | Supports destructuring (`const { data, meta } = ...`)                                      | Partially supported                                 |
+| 🧪 Testability            | Easily testable: no schema mutation, class-based structure                                 | Harder to mock due to schema plugin requirement     |
+| ⚙️ Projection Support     | ✅ Yes                                                                                      | ✅ Yes                                               |
+| 🔌 Populate Support       | ✅ Yes                                                                                      | ✅ Yes                                               |
+| 💬 Lean Document Support  | ✅ Yes                                                                                      | ✅ Yes                                               |
+| 📦 Dependencies           | Zero dependencies beyond Mongoose                                                          | Depends on Mongoose and plugin structure            |
+| 🧠 Learning Curve         | Slightly higher (class-based, customizable)                                                | Very beginner-friendly                              |
+| 📚 Community              | New and growing                                                                             | Large and established                               |
+| 🔐 Schema Safety          | Does not modify original schema                                                             | Alters schema with plugin                           |
+
+---
+
 ## License
 
 ISC
