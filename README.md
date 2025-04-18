@@ -30,6 +30,15 @@ yarn add @dakohhh/mongoose-paginator
 
 ## Usage
 
+> **⚠️ Deprecation Notice:**
+> 
+> The `Paginator` class has been **deprecated** and will be removed in a future release. Please use the `PageNumberPaginator` class instead. `PageNumberPaginator` is functionally identical to `Paginator` and is now the recommended way to perform page-number-based pagination.
+> 
+> ```typescript
+> import { PageNumberPaginator } from '@dakohhh/mongoose-paginator';
+> // Usage is identical to the old Paginator class.
+> ```
+
 ### Basic Example
 
 ```typescript
@@ -63,10 +72,12 @@ console.log(paginationInfo); // Pagination metadata
 
 ### Advanced Usage
 
+#### Page Number Pagination (Recommended)
+
 ```typescript
-const page = 1; // Page number
-const limit = 10; // Number of items per page
-const paginator = new Paginator<IUser>(UserModel, page, limit, {
+import { PageNumberPaginator } from '@dakohhh/mongoose-paginator';
+
+const paginator = new PageNumberPaginator<IUser>(UserModel, 1, 10, {
   filter: { age: { $gte: 18 } },
   sort: { createdAt: -1 },
   projection: ['name', 'email', '-_id'],
@@ -74,19 +85,68 @@ const paginator = new Paginator<IUser>(UserModel, page, limit, {
   lean: true
 });
 
-// Or use the fluent API
-const result = await paginator
-  .setPage(page)
-  .setLimit(limit)
-  .setArgs({
-    filter: { age: { $gte: 18 } },
-    sort: { createdAt: -1 },
-    projection: ['name', 'email', '-_id'],
-    populate: [{ path: 'posts', select: 'title' }],
-    lean: true
-  })
-  .paginate();
+const result = await paginator.paginate();
+console.log(result);
+// {
+//   data: [...],
+//   meta: { total, lastPage, currentPage, perPage, prev, next }
+// }
 ```
+
+#### Offset Pagination
+
+Offset-based pagination is useful for traditional skip-limit pagination scenarios.
+
+```typescript
+import { OffsetPaginator } from '@dakohhh/mongoose-paginator';
+
+const offset = 0; // Start offset
+const limit = 10; // Items per page
+const paginator = new OffsetPaginator<IUser>(UserModel, offset, limit, {
+  filter: { age: { $gte: 18 } },
+  sort: { createdAt: -1 },
+  projection: ['name', 'email', '-_id'],
+  populate: [{ path: 'posts', select: 'title' }],
+  lean: true
+});
+
+const result = await paginator.paginate();
+console.log(result);
+// {
+//   data: [...],
+//   meta: { total, lastPage, currentPage, perPage, prev, next }
+// }
+```
+
+#### Cursor Pagination
+
+Cursor-based pagination is ideal for real-time feeds or infinite scrolling. Use the `nextCursor` from the previous result to fetch the next page.
+
+```typescript
+import { CursorPaginator } from '@dakohhh/mongoose-paginator';
+
+let cursor: string | null = null;
+const limit = 10;
+const paginator = new CursorPaginator<IUser>(UserModel, cursor, limit, {
+  filter: { age: { $gte: 18 } },
+  projection: ['name', 'email', '-_id'],
+  populate: [{ path: 'posts', select: 'title' }],
+  lean: true
+});
+
+const result = await paginator.paginate();
+console.log(result);
+// {
+//   data: [...],
+//   meta: { nextCursor }
+// }
+
+// To fetch the next page:
+cursor = result.meta.nextCursor;
+const nextPage = await new CursorPaginator<IUser>(UserModel, cursor, limit).paginate();
+```
+
+---
 
 ### Result Customization
 
