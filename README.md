@@ -77,7 +77,9 @@ console.log(paginationInfo); // Pagination metadata
 ```typescript
 import { PageNumberPaginator } from '@dakohhh/mongoose-paginator';
 
-const paginator = new PageNumberPaginator<IUser>(UserModel, 1, 10, {
+const page = 1
+const limit = 10
+const paginator = new PageNumberPaginator<IUser>(UserModel, page, limit, {
   filter: { age: { $gte: 18 } },
   sort: { createdAt: -1 },
   projection: ['name', 'email', '-_id'],
@@ -125,7 +127,7 @@ Cursor-based pagination is ideal for real-time feeds or infinite scrolling. Use 
 ```typescript
 import { CursorPaginator } from '@dakohhh/mongoose-paginator';
 
-let cursor: string | null = null;
+let cursor: string | null = null; // BSON ObjectId
 const limit = 10;
 const paginator = new CursorPaginator<IUser>(UserModel, cursor, limit, {
   filter: { age: { $gte: 18 } },

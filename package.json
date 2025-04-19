@@ -1,6 +1,6 @@
 {
   "name": "@dakohhh/mongoose-paginator",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Mongoose-Class-Paginator is a lightweight, flexible, and TypeScript-friendly pagination utility for Mongoose models. It provides a class-based approach to handling database pagination with support for filtering, sorting, population, projection, and metadata customization — all without relying on heavy plugins",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
