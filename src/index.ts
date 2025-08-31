@@ -173,10 +173,10 @@ export class OffsetPaginator<T> extends BasePaginator<T> {
   }
 }
 
-
 export class CursorPaginator<T> extends BasePaginator<T> {
   private cursor: string | null;
   private limit: number;
+  
   constructor(model: Model<T>, cursor: string | null, limit: number, args: IPaginateArgs<T> = { filter: {}, lean: true }) {
     super(model, args);
     this.cursor = cursor;
@@ -194,19 +194,37 @@ export class CursorPaginator<T> extends BasePaginator<T> {
   }
 
   async paginate(): Promise<IPaginationResult<T>> {
-
     const filter = { ...this.args.filter };
-
+    
+    // Get the sort configuration - default to _id: 1 if not provided
+    const sortConfig = this.args.sort || { _id: 1 };
+    const sortField = Object.keys(sortConfig)[0]; // Get first sort field
+    const sortOrder = Object.values(sortConfig)[0] as 1 | -1; // Get sort direction
+    
     if (this.cursor) {
-      filter._id = { $gt: new Types.ObjectId(this.cursor) };
+      if (sortField === '_id') {
+        // Handle ObjectId cursor
+        if (sortOrder === 1) {
+          filter._id = { $gt: new Types.ObjectId(this.cursor) };
+        } else {
+          filter._id = { $lt: new Types.ObjectId(this.cursor) };
+        }
+      } else {
+        // Handle other field types (like Date, Number, String)
+        if (sortOrder === 1) {
+          filter[sortField] = { $gt: this.cursor };
+        } else {
+          filter[sortField] = { $lt: this.cursor };
+        }
+      }
     }
 
     const query = this.model
       .find(filter)
-      .sort({ _id: 1 })
+      .sort(sortConfig) // Use the actual sort configuration
       .limit(this.limit)
       .populate(this.args.populate || [])
-      .select(this.args.projection || {})
+      .select(this.args.projection || {});
 
     if (this.args.lean) {
       query.lean();
@@ -215,10 +233,26 @@ export class CursorPaginator<T> extends BasePaginator<T> {
     const items = await query;
     const lastItem = items[items.length - 1];
 
+    // Generate cursor based on the sort field
+    let nextCursor = null;
+    if (lastItem) {
+      if (sortField === '_id') {
+        nextCursor = String(lastItem._id);
+      } else {
+        const cursorValue = (lastItem as Record<string, any>)[sortField];
+        // Handle Date objects by converting to ISO string
+        if (cursorValue instanceof Date) {
+          nextCursor = cursorValue.toISOString();
+        } else {
+          nextCursor = String(cursorValue);
+        }
+      }
+    }
+
     return {
       data: items as T[],
       meta: {
-        nextCursor: lastItem ? (String(lastItem._id)) : null,
+        nextCursor,
       },
     };
   }
